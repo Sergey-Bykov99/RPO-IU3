@@ -1,9 +1,16 @@
 package ru.iu3.fclient;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
+import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Bundle;
-import android.widget.TextView;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+
 import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
@@ -57,4 +64,37 @@ public class MainActivity extends AppCompatActivity {
 
     public static native byte[] encrypt(byte[] key, byte[] data);
     public static native byte[] decrypt(byte[] key, byte[] data);
+    public static byte[] StringToHex(String s)
+    {
+        byte[]hex;
+        try
+        {
+            hex = Hex.decodeHex(s.toCharArray());
+        }
+        catch (DecoderException ex)
+        {
+            hex = null;
+        }
+        return hex;
+    }
+    public void onButtonClick(View v)
+    {
+        byte [] key = StringToHex("0123456789ABCDEF0123456789ABCDE0");
+        byte [] enc = encrypt(key,StringToHex("000000000000000102"));
+        byte [] dec = decrypt(key,enc);
+        String s = new String (Hex.encodeHex(dec)).toUpperCase();
+        Intent it = new Intent(this, PinpadActivity.class);
+        startActivityForResult(it, 0);
+
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 0) {
+            if (resultCode == RESULT_OK || data != null) {
+                String pin = data.getStringExtra("pin");
+                Toast.makeText(this, pin, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }
